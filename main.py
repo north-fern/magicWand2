@@ -12,18 +12,8 @@ import serial, string, math
 
 def readFiles():
      datapoints = []
-     '''
-     south = open("south.txt", "r")
-     for line in south:
-          line = line.split(",")
-          newthing = [0,0,0,0,0,0]
-          for i in range(6):
-               newthing[i] = float(line[i])
-          datapoints.append((newthing, 1))
-     south.close()
-     wait(500)
-     '''
-     southwest = open("southwest.txt", "r")
+     
+     southwest = open("sw.txt", "r")
      for line in southwest:
           line = line.split(",")
           newthing = [0,0,0,0,0,0]
@@ -32,34 +22,34 @@ def readFiles():
           datapoints.append((newthing, 0))
      southwest.close()
      wait(500)
-     '''
-     southeast = open("southeast.txt", "r")
+     
+     southeast = open("se.txt", "r")
      for line in southeast:
           line = line.split(",")
           newthing = [0,0,0,0,0,0]
           for i in range(6):
                newthing[i] = float(line[i])
-          datapoints.append((newthing, 2))
+          datapoints.append((newthing, 1))
      southeast.close()
      wait(500)
-     '''
-     northwest = open("northwest.txt", "r")
+     
+     northwest = open("nw.txt", "r")
      for line in northwest:
           line = line.split(",")
           newthing = [0,0,0,0,0,0]
           for i in range(6):
                newthing[i] = float(line[i])
-          datapoints.append((newthing, 3))
+          datapoints.append((newthing, 2))
      northwest.close()
      wait(500)
      
-     northeast = open("northeast.txt", "r")
+     northeast = open("ne.txt", "r")
      for line in northeast:
           line = line.split(",")
           newthing = [0,0,0,0,0,0]
           for i in range(6):
                newthing[i] = float(line[i])
-          datapoints.append((newthing, 4))
+          datapoints.append((newthing, 3))
      northeast.close()
      wait(500)
 
@@ -74,12 +64,12 @@ def kNN(datapoints, x, k):
           euc = 0
           for val in range(3):
                #print(data[0][val])
-               euc += (x[val] - data[0][val])**2
+               euc += ((x[val] - data[0][val]))**2
           euc = (euc)**(1/2)
           dist.append((euc, data[1]))
      
      dist.sort()
-     labelarray = [0,0,0,0,0]
+     labelarray = [0,0,0,0]
      for i in range(k):
           label = dist[i][1]
           labelarray[label] += 1
@@ -100,7 +90,7 @@ def kNN(datapoints, x, k):
 ev3 = EV3Brick()
 ev3.speaker.beep()
 button = TouchSensor(Port.S1)
-filename = "nw"
+filename = "HOLD"
 datapoints = readFiles()
 #print(datapoints[0])
 
@@ -109,7 +99,7 @@ f = open(filename + ".txt", "w")
 s=serial.Serial("/dev/ttyACM0",9600)
 #f.write("xaccel, yaccel, zaccel, xgyro, ygyro, zgyro\n")
 trialnum = 0
-
+ev3.speaker.say("READY!")
 while True:
      justpressed = False
      avgMotion = [0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
@@ -132,17 +122,24 @@ while True:
      
      if justpressed == True:
           for i in range(6):
-               avgMotion[i] = avgMotion[i] / count
+               avgMotion[i] = (avgMotion[i] / count)
           
-               f.write(str(avgMotion[i]) + ", ")
-          trialnum += 1
-          print(trialnum)
+               #f.write(str(avgMotion[i]) + ", ")
+          #trialnum += 1
+          #print(trialnum)
                
-          #val = kNN(datapoints, avgMotion, 3)
-          #print(val)
+          val = kNN(datapoints, avgMotion, 13)
+          print(val)
           justpressed = False
-          f.write("\n")
-
+          #f.write("\n")
+          if val == 0:
+               ev3.speaker.play_file('snare.wav')
+          if val == 1:
+               ev3.speaker.play_file('gong.wav')
+          if val == 2:
+               ev3.speaker.play_file('laser.wav')
+          if val == 3:
+               ev3.speaker.play_file('crash.wav')
      
 
      
